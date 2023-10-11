@@ -9,4 +9,8 @@
   user:
     name: "{{ patroni_system_user }}"
     group: "{{ patroni_system_group }}"
+    home: "{{ patroni_system_user_home }}"
     system: yes
+    shell: /bin/bash
+  register: patroni_user
+  tags: always

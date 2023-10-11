@@ -22,9 +22,20 @@
     daemon_reload: yes
     enabled: yes
 
+- name: reload patroni
+  systemd:
+    name: patroni.service
+    state: reloaded
+    daemon_reload: yes
+    enabled: yes
+
 - name: restart haproxy
   systemd:
     name: haproxy.service
     state: restarted
     daemon_reload: yes
     enabled: yes
+
+- name: clean cache
+  become_user: root
+  shell: sync && echo 3 > /proc/sys/vm/drop_caches

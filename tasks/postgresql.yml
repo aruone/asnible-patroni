@@ -1,12 +1,14 @@
 ---
 
-- block:
+- name: Setup PostgreSQL repository | Debian
+  block:
     - name: Configure postgresql repository key
       apt_key:
         url: "{{ postgresql_apt_key_url }}"
+        keyring: "{{ postgresql_apt_keyring }}"
       when: postgresql_apt_key_url != ""
 
-    - name: Configure postgresql repository
+    - name: Configure postgresql repository 
       apt_repository:
         repo: "{{ postgresql_apt_repo }}"
         filename: "{{ postgresql_apt_filename }}"
@@ -21,12 +23,18 @@
         path: /etc/postgresql-common/createcluster.conf
         replace: create_main_cluster = false
         regexp: ^#?create_main_cluster.*$
-  when: ansible_os_family == "Debian"
 
-- name: Configure postgresql repository
+    - name: Disable initializing of a default postgresql cluster
+      replace:
+        path: /etc/postgresql-common/createcluster.conf
+        replace: start_conf = 'disabled'
+        regexp: ^#?start_conf.*$
+  when: ansible_os_family == "Debian" and patroni_postgresql_add_repo
+
+- name: Configure postgresql repository | RedHat
   package:
     name: "{{ postgresql_yum_repo_url }}"
-  when: ansible_os_family == "RedHat"
+  when: ansible_os_family == "RedHat" and patroni_postgresql_add_repo
 
 - name: Install postgresql packages
   package:
@@ -35,3 +43,10 @@
     update_cache: yes
   with_items:
     - "{{ patroni_postgresql_packages }}"
+
+- name: add version specific binaries to PATH variable thorugh system-wide .bashrc file
+  lineinfile:
+    path: "/etc/bash.bashrc"
+    line: "export PATH=$PATH:{{ patroni_postgresql_bin_dir }}"
+    create: true
+  

@@ -1,4 +1,19 @@
 ---
+- name: Ensure config dir exists 
+  file:
+    path: "{{ patroni_postgresql_config_dir }}/conf.d"
+    state: directory
+    owner: "{{ patroni_system_user }}"
+    group: "{{ patroni_system_group }}"
+    mode: 0755
+
+- name: Ensure default config present
+  file:
+    path: "{{ patroni_postgresql_config_dir }}/postgresql.conf"
+    state: touch
+    owner: "{{ patroni_system_user }}"
+    group: "{{ patroni_system_group }}"
+    mode: 0755
 
 - name: Create patroni config directory
   file:
@@ -7,8 +22,8 @@
     owner: "{{ patroni_system_user }}"
     group: "{{ patroni_system_group }}"
     mode: 0750
-  when: patroni_install_from_pip
-
+  tags: config
+  
 - name: Create patroni log directory
   file:
     path: "{{ patroni_log_dir }}"
@@ -37,7 +52,6 @@
     owner: root
     group: root
     mode: 0644
-  when: patroni_install_from_pip
 
 - name: Create patroni configuration file
   template:
@@ -47,7 +61,8 @@
     group: "{{ patroni_system_group }}"
     mode: 0600
   notify:
-    - restart patroni
+    - reload patroni
+  tags: config
 
 - name: Create haproxy configuration file
   template:

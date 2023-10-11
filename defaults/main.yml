@@ -1,6 +1,6 @@
 ---
-
-patroni_postgresql_version: 11
+patroni_postgresql_add_repo: true
+patroni_postgresql_version: 14
 patroni_postgresql_exists: false
 patroni_install_from_pip: true
 patroni_install_haproxy: false
@@ -10,10 +10,11 @@ patroni_config_file: "{{ inventory_hostname }}.yml"
 patroni_system_user: postgres
 patroni_system_group: postgres
 
+patroni_configure_hugepages: true
+patroni_disable_thp: true
 # create a backup file before copying files on hosts
 patroni_backup_on_copy: true
 
-patroni_exec_start_pre: "/bin/mkdir -m 2750 -p /var/run/postgresql/{{ patroni_postgresql_version }}-main.pg_stat_tmp"
 
 patroni_pip_packages:
   - { name: "setuptools",                 state: "latest",  umask: "0022", executable: "pip3" }
@@ -169,8 +170,9 @@ patroni_bootstrap_users:
   - { name: "{{ patroni_replication_username }}", password: "{{ patroni_replication_password }}", options: ['replication'] }
 
 patroni_postgresql_use_unix_socket: true
-patroni_postgresql_listen: 0.0.0.0:5432
-patroni_postgresql_connect_address: "{{ ansible_host }}:5432"
+patroni_postgresql_port: 5432
+patroni_postgresql_listen: "{{ ansible_default_ipv4.address }}:{{ patroni_postgresql_port }}"
+patroni_postgresql_connect_address: "{{ ansible_host }}:{{ patroni_postgresql_port }}"
 
 # https://patroni.readthedocs.io/en/latest/SETTINGS.html#postgresql
 patroni_postgresql_authentication:
@@ -230,6 +232,15 @@ patroni_watchdog_mode: automatic # use quotes for 'off' value
 patroni_watchdog_device: /dev/watchdog
 patroni_watchdog_safety_margin: 5
 
+patroni_tags:
+  - { name: "nofailover",    value: "false" }
+  - { name: "noloadbalance", value: "false" }
+  - { name: "clonefrom",     value: "false" }
+  - { name: "nosync",        value: "false" }
+  - { name: "replicatefrom", value: "" }
+
+patroni_exec_start_pre: "/bin/mkdir -m 2750 -p /var/run/postgresql/{{ patroni_postgresql_version }}-{{ patroni_scope }}.pg_stat_tmp"
+
 patroni_haproxy_servers: []
   # - { name: "server1", ip: "10.0.0.1", port: "5432" }
   # - { name: "server2", ip: "10.0.0.2", port: "5432" }
@@ -239,9 +250,3 @@ patroni_haproxy_leader_listen_port: 5000
 patroni_haproxy_replica_listen_port: 5001
 patroni_haproxy_stats_listen_port: 7000
 
-patroni_tags:
-  - { name: "nofailover",    value: "false" }
-  - { name: "noloadbalance", value: "false" }
-  - { name: "clonefrom",     value: "false" }
-  - { name: "nosync",        value: "false" }
-  - { name: "replicatefrom", value: "" }
