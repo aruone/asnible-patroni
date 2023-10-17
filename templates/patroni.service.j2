@@ -1,5 +1,4 @@
-# This is an example systemd config file for Patroni
-# You can copy it to "/etc/systemd/system/patroni.service",
+## {{ ansible_managed }}
 
 [Unit]
 Description=Runners to orchestrate a high-availability PostgreSQL
@@ -17,12 +16,15 @@ Group={{ patroni_system_group }}
 
 ExecStartPre={{ patroni_exec_start_pre | default('') }}
 ExecStart={{ patroni_bin_dir }}/patroni {{ patroni_config_dir }}/{{ patroni_config_file }}
+ExecReload=/bin/kill -HUP $MAINPID
 
 # only kill the patroni process, not it's children, so it will gracefully stop postgres
 KillMode=process
+OOMScoreAdjust=-1000
 
 # Give a reasonable amount of time for the server to start up/shut down
 TimeoutSec=30
+TimeoutStopSec=120s
 
 # Do not restart the service if it crashes, we want to manually inspect database on failure
 Restart=no

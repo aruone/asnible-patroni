@@ -24,7 +24,7 @@
         replace: create_main_cluster = false
         regexp: ^#?create_main_cluster.*$
 
-    - name: Disable initializing of a default postgresql cluster
+    - name: Disable autostart of a default postgresql cluster
       replace:
         path: /etc/postgresql-common/createcluster.conf
         replace: start_conf = 'disabled'
@@ -44,9 +44,15 @@
   with_items:
     - "{{ patroni_postgresql_packages }}"
 
+- name: stop and disable postgresql service 
+  service:
+    name: postgresql
+    state: stopped
+    enabled: false
+  when: ansible_os_family == 'Debian'
+
 - name: add version specific binaries to PATH variable thorugh system-wide .bashrc file
   lineinfile:
     path: "/etc/bash.bashrc"
     line: "export PATH=$PATH:{{ patroni_postgresql_bin_dir }}"
-    create: true
   

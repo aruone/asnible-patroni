@@ -36,6 +36,3 @@
     daemon_reload: yes
     enabled: yes
 
-- name: clean cache
-  become_user: root
-  shell: sync && echo 3 > /proc/sys/vm/drop_caches

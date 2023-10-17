@@ -1,20 +1,28 @@
 ---
-- name: Ensure config dir exists 
+- name: Ensure config and log dir exists 
   file:
-    path: "{{ patroni_postgresql_config_dir }}/conf.d"
+    path: "{{ item }}"
     state: directory
     owner: "{{ patroni_system_user }}"
     group: "{{ patroni_system_group }}"
     mode: 0755
+  loop:
+    - "{{ patroni_postgresql_config_dir }}"
+    - "{{ patroni_postgresql_config_dir }}/conf.d"
+    - "{{ patroni_postgresql_parameters | selectattr('option', 'match', 'log_directory') | map(attribute='value') | join('') | default('/var/log/postgresql', true) }}"
+  tags: directories
 
-- name: Ensure default config present
+- name: Ensure default config files present
   file:
     path: "{{ patroni_postgresql_config_dir }}/postgresql.conf"
     state: touch
     owner: "{{ patroni_system_user }}"
     group: "{{ patroni_system_group }}"
     mode: 0755
-
+  loop: 
+    - "{{ patroni_postgresql_config_dir }}/postgresql.conf"
+    - "{{ patroni_postgresql_config_dir }}/pg_ident.conf"
+    
 - name: Create patroni config directory
   file:
     path: "{{ patroni_config_dir }}"

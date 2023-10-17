@@ -4,6 +4,7 @@
   group:
     name: "{{ patroni_system_group }}"
     state: present
+    gid: "{{ patroni_system_group_gid | default(omit)}}"
 
 - name: Add patroni user
   user:

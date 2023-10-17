@@ -6,18 +6,13 @@
   
 - import_tasks: postgresql.yml
   when: not pg_ping.is_available and not patroni_postgresql_exists
+  tags: postgres
 
 - import_tasks: user.yml
 
-- import_tasks: disable_thp.yml
-  when: patroni_disable_thp
-
-- import_tasks: hugepages.yml
-  when: patroni_configure_hugepages
-  tags: hugepages
-  
 - import_tasks: watchdog.yml
   when: patroni_watchdog_mode in ('automatic', 'required')
+  tags: watchdog
 
 - name: Install system packages for patroni
   package:
@@ -26,7 +21,6 @@
     update_cache: yes
   with_items:
     - "{{ patroni_system_packages }}"
-  when: patroni_install_from_pip
 
 - name: Install pip packages for patroni
   pip:

@@ -1,7 +1,10 @@
 ---
 - include_tasks: variables.yml
+  tags: [always]
 
 - import_tasks: install.yml
+  environment:
+    DEBIAN_FRONTEND: noninteractive
   tags: [patroni, patroni-install]
 
 - import_tasks: configure.yml
@@ -15,6 +18,7 @@
     state: started
     daemon_reload: yes
     enabled: yes
+  register: patroni_service
   tags: [patroni]
 
 - name: Ensure haproxy is running

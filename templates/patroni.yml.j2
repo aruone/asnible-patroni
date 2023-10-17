@@ -1,4 +1,6 @@
 #jinja2: lstrip_blocks: True
+## {{ ansible_managed }}
+
 scope: {{ patroni_scope |d('main', true) }}
 namespace: {{ patroni_namespace |d('/service/', true) }}
 name: {{ patroni_name |d(inventory_hostname, true) }}
@@ -107,6 +109,17 @@ bootstrap:
       {% endif %}
     {% endfor %}
   {% endif %}
+  {% if patroni_bootstrap_dcs_ignore_slots |d([], true) |length > 0 %}
+    ignore_slots:
+    {% for slot in patroni_bootstrap_dcs_ignore_slots %}
+      - name: {{ slot.name }}
+        type: {{ slot.type }}
+      {% if slot.type == 'logical' %}
+        database: {{ slot.database }}
+        plugin: {{ slot.plugin }}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
 {% if patroni_bootstrap_method_name |d(None, true) and patroni_bootstrap_method_command |d(None, true) %}
   method: {{ patroni_bootstrap_method_name }}
   {{ patroni_bootstrap_method_name }}:
@@ -145,7 +158,7 @@ bootstrap:
   users:
   {% for user in patroni_bootstrap_users %}
     {{ user.name }}:
-      password: {{ user.password }}
+      password: {{ user.password | quote }}
     {% if user.options |d([], true) |length > 0 %}
       options:
       {% for option in user.options %}
@@ -196,9 +209,9 @@ postgresql:
   {{ create_replica_method }}:
 {% for item in vars['patroni_postgresql_' + create_replica_method] %}
   {% if item.value is undefined %}
-    {{ item.option }}
+    - {{ item.option }}
   {% else %}
-    {{ item.option }}: {{ item.value }}
+    - {{ item.option }}: {{ item.value }}
   {% endif %}
 {% endfor %}
   {% endif %}
@@ -215,7 +228,7 @@ postgresql:
 {% if patroni_postgresql_parameters |d([], true) |length > 0 %}
   parameters:
   {% for guc in patroni_postgresql_parameters %}
-    {{ guc.option }}: {{ guc.value }}
+    {{ guc.option }}: {{ guc.value | quote }}
   {% endfor %}
 {% endif %}
 {% if patroni_postgresql_pg_hba |d([], true) |length > 0 %}
