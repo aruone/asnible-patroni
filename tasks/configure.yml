@@ -19,6 +19,7 @@
     owner: "{{ patroni_system_user }}"
     group: "{{ patroni_system_group }}"
     mode: 0755
+  changed_when: false
   loop: 
     - "{{ patroni_postgresql_config_dir }}/postgresql.conf"
     - "{{ patroni_postgresql_config_dir }}/pg_ident.conf"
