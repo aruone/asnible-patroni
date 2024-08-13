@@ -20,8 +20,8 @@ log:
     {{ logger.module }}: {{ logger.level |upper }}
   {% endfor %}
 {% endif %}
-
 {% endif %}
+
 restapi:
   connect_address: {{ patroni_restapi_connect_address |d(ansible_host + ':8008', true) }}
   listen: {{ patroni_restapi_listen |d('0.0.0.0:8008', true) }}
