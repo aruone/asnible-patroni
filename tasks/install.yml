@@ -22,6 +22,12 @@
   with_items:
     - "{{ patroni_system_packages }}"
 
+- name: Install patroni package
+  package:
+    name: patroni
+    state: present
+  when: not patroni_install_from_pip
+
 - name: Install pip packages for patroni
   pip:
     name: "{{ item.name }}"
