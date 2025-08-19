@@ -14,12 +14,31 @@ log:
   dir: {{ patroni_log_dir }}
   file_num: {{ patroni_log_file_num |int }}
   file_size: {{ patroni_log_file_size |int }}
+  mode: {{ patroni_log_mode |int }}
 {% if patroni_log_loggers |d([], true) |length > 0 %}
   loggers:
   {% for logger in patroni_log_loggers %}
     {{ logger.module }}: {{ logger.level |upper }}
   {% endfor %}
 {% endif %}
+{% endif %}
+
+ctl:
+  insecure: {{ patroni_ctl_insecure|d('true') }}
+{% if patroni_ctl_username |d(None, true) and patroni_ctl_password |d(None, true) %}
+  authentication:
+    username: {{ patroni_ctl_username }}
+    password: {{ patroni_ctl_password }}
+{% endif %}
+{% if patroni_ctl_certfile |d(None, true) and patroni_ctl_keyfile |d(None, true) %}
+  certfile: {{ patroni_ctl_certfile }}
+  keyfile: {{ patroni_ctl_keyfile }}
+{% endif %}
+{% if patroni_ctl_cacert |d(None, true) %}
+  cacert: {{ patroni_ctl_cacert }}
+{% endif %}
+{% if patroni_ctl_keyfile_password |d(None, true) %}
+  keyfile_password: {{ patroni_ctl_keyfile_password }}
 {% endif %}
 
 restapi:
@@ -41,7 +60,7 @@ restapi:
   cafile: {{ patroni_restapi_cafile }}
 {% endif %}
 {% if patroni_restapi_ciphers |d(None, true) %}
-  ciphers: {{ patroni_restapi_ciphers }}
+  ciphers: {{ patroni_restapi_ciphers|quote }}
 {% endif %}
 {% if patroni_restapi_verify_client |d(None, true) %}
   verify_client: {{ patroni_restapi_verify_client }}
@@ -64,6 +83,7 @@ bootstrap:
     master_start_timeout: {{ patroni_bootstrap_dcs_master_start_timeout |d(300, true) |int }}
     synchronous_mode: {{ patroni_bootstrap_dcs_synchronous_mode |d(false, true) |lower }}
     synchronous_mode_strict: {{ patroni_bootstrap_dcs_synchronous_mode_strict |d(false, true) |lower }}
+    synchronous_node_count: {{ patroni_bootstrap_dcs_synchronous_node_count |d(1) }}
     check_timeline: {{ patroni_bootstrap_dcs_check_timeline |d(false, true) |lower }}
   {% if patroni_bootstrap_dcs_standby_cluster |map(attribute='value') |join() |trim |length > 0 %}
     standby_cluster:
@@ -71,6 +91,7 @@ bootstrap:
       {{ item.option }}: {{ item.value }}
     {% endfor %}
   {% endif %}
+    failsafe_mode: {{ patroni_bootstrap_dcs_failsafe_mode |d(false, true) |lower }}
     postgresql:
       use_pg_rewind: {{ patroni_bootstrap_dcs_postgresql_use_pg_rewind |string |d(true, true) |replace(None, true) |lower }}
       use_slots: {{ patroni_bootstrap_dcs_postgresql_use_slots |string |d(true, true) |replace(None, true) |lower }}

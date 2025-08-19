@@ -35,6 +35,7 @@ patroni_log_format: "%(asctime)s %(levelname)s: %(message)s"
 patroni_log_dateformat: ""
 patroni_log_max_queue_size: 1000
 patroni_log_dir: /var/log/patroni
+patroni_log_mode: 0600
 patroni_log_file_num: 4
 patroni_log_file_size: 25000000
 patroni_log_loggers:
